@@ -9,7 +9,7 @@
 import UIKit
 import NotificationCenter
 
-let groupBundle = "group.VPNCare.shadowVPN"
+let groupBundle = "group.com.HansonStudio.NetShuttle"
 
 class TodayViewController: UIViewController, NCWidgetProviding {
     
@@ -20,10 +20,10 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         super.viewDidLoad()
         // Do any additional setup after loading the view from its nib.
         
-        preferredContentSize = CGSizeMake(0, 50)
+        preferredContentSize = CGSize(width: 0, height: 50)
         configureUI()
         
-        statusSwitch.addTarget(self, action: "statusSwitchValueChanged:", forControlEvents: .ValueChanged)
+        statusSwitch.addTarget(self, action: #selector(TodayViewController.statusSwitchValueChanged(_:)), for: .valueChanged)
         // NSNotificationCenter.defaultCenter().addObserver(self, selector: "setStatusSwitchState", name: NSUserDefaultsDidChangeNotification, object: nil)
     }
     
@@ -32,41 +32,41 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         setLabelDisplayText(label)
         
         statusSwitch = UISwitch(frame: CGRect(x: 0, y: 0, width: 50, height: 31))
-        statusSwitch.on = false
+        statusSwitch.isOn = false
         setStatusSwitchState()
         
         label.translatesAutoresizingMaskIntoConstraints = false
         statusSwitch.translatesAutoresizingMaskIntoConstraints = false
         
         let labelConstraintCenterY = NSLayoutConstraint(item: label,
-            attribute: .CenterY,
-            relatedBy: .Equal,
+            attribute: .centerY,
+            relatedBy: .equal,
             toItem: view,
-            attribute: .CenterY,
+            attribute: .centerY,
             multiplier: 1,
             constant: 0)
         
         let labelConstraingLeading = NSLayoutConstraint(item: label,
-            attribute: .Leading,
-            relatedBy: .Equal,
+            attribute: .leading,
+            relatedBy: .equal,
             toItem: view,
-            attribute: .Leading,
+            attribute: .leading,
             multiplier: 1,
             constant: 0)
         
         let statusSwitchConstraintCenterY = NSLayoutConstraint(item: statusSwitch,
-            attribute: .CenterY,
-            relatedBy: .Equal,
+            attribute: .centerY,
+            relatedBy: .equal,
             toItem: label,
-            attribute: .CenterY,
+            attribute: .centerY,
             multiplier: 1,
             constant: 0)
         
         let statusSwitchConstraintTailling = NSLayoutConstraint(item: statusSwitch,
-            attribute: .Trailing,
-            relatedBy: .Equal,
+            attribute: .trailing,
+            relatedBy: .equal,
             toItem: view,
-            attribute: .Trailing,
+            attribute: .trailing,
             multiplier: 1,
             constant: -20)
         
@@ -78,11 +78,11 @@ class TodayViewController: UIViewController, NCWidgetProviding {
 
     }
     
-    func setLabelDisplayText(label: UILabel) {
-        label.textColor = UIColor.whiteColor()
+    func setLabelDisplayText(_ label: UILabel) {
+        label.textColor = UIColor.white
         
-        let shared = NSUserDefaults(suiteName: groupBundle)
-        if let text = shared?.valueForKey("currentVPN") as? String {
+        let shared = UserDefaults(suiteName: groupBundle)
+        if let text = shared?.value(forKey: "currentVPN") as? String {
             label.text = text
         } else {
             label.text = "missing configurations"
@@ -90,22 +90,22 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     }
     
     func setStatusSwitchState() {
-        let shared = NSUserDefaults(suiteName: groupBundle)!
-        let state = shared.boolForKey("vpnState")
-        statusSwitch.on = state
+        let shared = UserDefaults(suiteName: groupBundle)!
+        let state = shared.bool(forKey: "vpnState")
+        statusSwitch.isOn = state
     }
     
-    func statusSwitchValueChanged(sender: UISwitch) {
+    func statusSwitchValueChanged(_ sender: UISwitch) {
         let urlSchema = "shadowvpn"
         var host: String
-        if sender.on {
+        if sender.isOn {
             host = "start"
         } else {
             host = "stop"
         }
         let url = urlSchema + "://" + host
         
-        extensionContext?.openURL(NSURL(string: url)!, completionHandler: nil)
+        extensionContext?.open(URL(string: url)!, completionHandler: nil)
     }
     
     override func didReceiveMemoryWarning() {
@@ -113,19 +113,19 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         // Dispose of any resources that can be recreated.
     }
     
-    func widgetMarginInsetsForProposedMarginInsets(defaultMarginInsets: UIEdgeInsets) -> UIEdgeInsets {
+    func widgetMarginInsets(forProposedMarginInsets defaultMarginInsets: UIEdgeInsets) -> UIEdgeInsets {
         let inset = UIEdgeInsets(top: defaultMarginInsets.top, left: defaultMarginInsets.left, bottom: 0, right: defaultMarginInsets.right)
         return inset
     }
     
-    func widgetPerformUpdateWithCompletionHandler(completionHandler: ((NCUpdateResult) -> Void)) {
+    func widgetPerformUpdate(completionHandler: (@escaping (NCUpdateResult) -> Void)) {
         // Perform any setup necessary in order to update the view.
 
         // If an error is encountered, use NCUpdateResult.Failed
         // If there's no update required, use NCUpdateResult.NoData
         // If there's an update, use NCUpdateResult.NewData
         
-        completionHandler(NCUpdateResult.NewData)
+        completionHandler(NCUpdateResult.newData)
     }
     
 }

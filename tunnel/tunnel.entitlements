@@ -14,7 +14,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.VPNCare.shadowVPN</string>
+		<string>group.com.HansonStudio.NetShuttle</string>
 	</array>
 </dict>
 </plist>

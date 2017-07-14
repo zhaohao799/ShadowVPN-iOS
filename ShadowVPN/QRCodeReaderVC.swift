@@ -11,8 +11,8 @@ import AVFoundation
 import Photos
 
 
-let SCREEN_HEIGHT = UIScreen.mainScreen().bounds.height
-let SCREEN_WIDTH = UIScreen.mainScreen().bounds.width
+let SCREEN_HEIGHT = UIScreen.main.bounds.height
+let SCREEN_WIDTH = UIScreen.main.bounds.width
 
 
 class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -23,7 +23,7 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Albums", style: UIBarButtonItemStyle.Plain, target: self, action: "selectFromAlbum:")
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Albums", style: UIBarButtonItemStyle.plain, target: self, action: #selector(QRCodeReaderVC.selectFromAlbum(_:)))
 
         self.setupCapture()
         self.configureVideoPreviewLayer()
@@ -46,7 +46,7 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
     }
     */
     
-    func selectFromAlbum(sender: UIBarButtonItem) {
+    func selectFromAlbum(_ sender: UIBarButtonItem) {
         if captureSession != nil {
             captureSession?.stopRunning()
         }
@@ -54,44 +54,44 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
         let status = PHPhotoLibrary.authorizationStatus()
         
         switch status {
-        case .Denied, .Restricted:
-            let alert = UIAlertController(title: "No Permission", message: "You should approve ShadowVPN to access your photos", preferredStyle: UIAlertControllerStyle.Alert)
+        case .denied, .restricted:
+            let alert = UIAlertController(title: "No Permission", message: "You should approve ShadowVPN to access your photos", preferredStyle: UIAlertControllerStyle.alert)
             
-            let settingAction = UIAlertAction(title: "Setup", style: UIAlertActionStyle.Default, handler: { (action: UIAlertAction) -> Void in
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    let settingURL = NSURL(string: UIApplicationOpenSettingsURLString)
-                    UIApplication.sharedApplication().openURL(settingURL!)
+            let settingAction = UIAlertAction(title: "Setup", style: UIAlertActionStyle.default, handler: { (action: UIAlertAction) -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
+                    let settingURL = URL(string: UIApplicationOpenSettingsURLString)
+                    UIApplication.shared.openURL(settingURL!)
                 })
             })
             alert.addAction(settingAction)
             
-            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Cancel, handler: nil)
+            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: nil)
             alert.addAction(cancelAction)
-            self.presentViewController(alert, animated: true, completion: nil)
+            self.present(alert, animated: true, completion: nil)
         default:
             let imagePicker = UIImagePickerController()
             imagePicker.delegate = self
-            self.presentViewController(imagePicker, animated: true, completion: nil)
+            self.present(imagePicker, animated: true, completion: nil)
         }
     }
     
-    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
-        picker.dismissViewControllerAnimated(true) { () -> Void in
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true) { () -> Void in
             if self.captureSession != nil {
                 self.captureSession?.startRunning()
             }
         }
     }
     
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
-        picker.dismissViewControllerAnimated(true, completion: nil)
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        picker.dismiss(animated: true, completion: nil)
         let image = CIImage(image: info[UIImagePickerControllerOriginalImage] as! UIImage)
         
         let detector = CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: nil)
-        let features = detector.featuresInImage(image!)
-        if features.count > 0 {
-            let feature = features[0] as! CIQRCodeFeature
-            self.parseQRCodeContext(context: feature.messageString)
+        let features = detector?.features(in: image!)
+        if (features?.count)! > 0 {
+            let feature = features?[0] as! CIQRCodeFeature
+            self.parseQRCodeContext(context: feature.messageString!)
         } else {
             if captureSession != nil {
                 captureSession?.startRunning()
@@ -100,23 +100,23 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
     }
     
     func setupCapture() {
-        self.view.backgroundColor = UIColor.blackColor()
-        let status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
+        self.view.backgroundColor = UIColor.black
+        let status = AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo)
         switch status {
-        case .Denied, .Restricted:
-            let alert = UIAlertController(title: "No Permission", message: "You should approve ShadowVPN to access your video capture", preferredStyle: UIAlertControllerStyle.Alert)
+        case .denied, .restricted:
+            let alert = UIAlertController(title: "No Permission", message: "You should approve ShadowVPN to access your video capture", preferredStyle: UIAlertControllerStyle.alert)
             
-            let settingAction = UIAlertAction(title: "Setup", style: UIAlertActionStyle.Default, handler: { (action: UIAlertAction) -> Void in
-                let settingURL = NSURL(string: UIApplicationOpenSettingsURLString)
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    UIApplication.sharedApplication().openURL(settingURL!)
+            let settingAction = UIAlertAction(title: "Setup", style: UIAlertActionStyle.default, handler: { (action: UIAlertAction) -> Void in
+                let settingURL = URL(string: UIApplicationOpenSettingsURLString)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    UIApplication.shared.openURL(settingURL!)
                 })
             })
             alert.addAction(settingAction)
             
-            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Cancel, handler: nil)
+            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: nil)
             alert.addAction(cancelAction)
-            self.presentViewController(alert, animated: true, completion: nil)
+            self.present(alert, animated: true, completion: nil)
         default:
             self.configureInputDevice()
         }
@@ -124,7 +124,7 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
     
     func configureInputDevice() {
         let captureInput: AnyObject!
-        let captureDevice = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+        let captureDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
         
         do {
             captureInput = try AVCaptureDeviceInput(device: captureDevice)
@@ -141,16 +141,16 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
         
         self.setupScanRect(captureMetaDataOutput: captureMetadataOutput)
         captureMetadataOutput.metadataObjectTypes = [AVMetadataObjectTypeQRCode]
-        captureMetadataOutput.setMetadataObjectsDelegate(self, queue: dispatch_get_main_queue())
+        captureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
     }
     
     func setupScanRect(captureMetaDataOutput output: AVCaptureMetadataOutput) {
-        let scanRect = CGRectMake((SCREEN_WIDTH - 300) / 2, (SCREEN_HEIGHT - 300) / 2, 300, 300)
+        let scanRect = CGRect(x: (SCREEN_WIDTH - 300) / 2, y: (SCREEN_HEIGHT - 300) / 2, width: 300, height: 300)
         let y = scanRect.origin.x / SCREEN_WIDTH
         let x = scanRect.origin.y / SCREEN_HEIGHT
         let height = scanRect.width / SCREEN_WIDTH
         let width = scanRect.height / SCREEN_HEIGHT
-        output.rectOfInterest = CGRectMake(x, y, width, height)
+        output.rectOfInterest = CGRect(x: x, y: y, width: width, height: height)
     }
     
     func configureVideoPreviewLayer() {
@@ -160,8 +160,8 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
         self.view.layer.addSublayer(captureVideoPreviewLayer!)
         
         let scanArea = UIView()
-        scanArea.frame = CGRectMake((SCREEN_WIDTH - 300) / 2, (SCREEN_HEIGHT - 300) / 2, 300, 300)
-        scanArea.layer.borderColor = UIColor.whiteColor().CGColor
+        scanArea.frame = CGRect(x: (SCREEN_WIDTH - 300) / 2, y: (SCREEN_HEIGHT - 300) / 2, width: 300, height: 300)
+        scanArea.layer.borderColor = UIColor.white.cgColor
         scanArea.layer.borderWidth = 2.0
         self.view.addSubview(scanArea)
 
@@ -170,20 +170,20 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
     
     func initializeFocusFrame() {
         focusFrame = UIView()
-        focusFrame?.layer.borderColor = UIColor.greenColor().CGColor
+        focusFrame?.layer.borderColor = UIColor.green.cgColor
         focusFrame?.layer.borderWidth = 5
         self.view.addSubview(focusFrame!)
-        self.view.bringSubviewToFront(focusFrame!)
+        self.view.bringSubview(toFront: focusFrame!)
     }
     
-    func captureOutput(captureOutput: AVCaptureOutput!, didOutputMetadataObjects metadataObjects: [AnyObject]!, fromConnection connection: AVCaptureConnection!) {
+    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputMetadataObjects metadataObjects: [Any]!, from connection: AVCaptureConnection!) {
         if metadataObjects == nil || metadataObjects.count == 0 {
-            focusFrame?.frame = CGRectZero
+            focusFrame?.frame = CGRect.zero
             return
         }
         let objMetadataMachineReadableCodeObject = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         if objMetadataMachineReadableCodeObject.type == AVMetadataObjectTypeQRCode {
-            let barCodeObject = captureVideoPreviewLayer!.transformedMetadataObjectForMetadataObject(objMetadataMachineReadableCodeObject as AVMetadataMachineReadableCodeObject) as! AVMetadataMachineReadableCodeObject
+            let barCodeObject = captureVideoPreviewLayer!.transformedMetadataObject(for: objMetadataMachineReadableCodeObject as AVMetadataMachineReadableCodeObject) as! AVMetadataMachineReadableCodeObject
             focusFrame?.frame = barCodeObject.bounds;
             if objMetadataMachineReadableCodeObject.stringValue != nil {
                 self.parseQRCodeContext(context: objMetadataMachineReadableCodeObject.stringValue)
@@ -191,8 +191,8 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
         }
     }
     
-    func parseQRCodeContext(context context: String) {
-        let url: NSURLComponents = NSURLComponents(string: context)!
+    func parseQRCodeContext(context: String) {
+        let url: URLComponents = URLComponents(string: context)!
         var config: Dictionary = [String: String]()
         
         if url.scheme == "shadowvpn" && url.host == "QRCode" {
@@ -203,8 +203,8 @@ class QRCodeReaderVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, 
                 config[item.name] = item.value
             }
             
-            self.navigationController?.popViewControllerAnimated(true)
-            self.delegate?.writeBack(configuration: config)
+            self.navigationController?.popViewController(animated: true)
+            self.delegate?.writeBack(configuration: config as [String : AnyObject])
             
             // self.dismissViewControllerAnimated(true) { () -> Void in
             //     self.delegate?.writeBack(configuration: config)
